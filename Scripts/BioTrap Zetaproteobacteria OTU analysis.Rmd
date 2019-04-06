@@ -1,0 +1,137 @@
+---
+title: "Class Project"
+author: "Alejandra"
+date: "February 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("/Users/Ale/Documents/Quant Methods/Assignments/Seamount-Biotrap-OTU-analysis/Seamount-Biotrap-OTU-analysis-")
+install.packages('reshape2')
+
+library("reshape2")
+
+library("ggplot2")
+
+library("plyr")
+
+
+BioTrap_OTUTax=read.table("TrimAL_BioTrap.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.dgc.unique_list.0.03.cons.taxonomy",stringsAsFactors=F, header=T)
+
+BioTrap_OTUTax[]=lapply(BioTrap_OTUTax,gsub, pattern="\\(100)", replacement='')#shows OTU name, total size, and taxonomy
+View(BioTrap_OTUTax)
+
+shared = read.table("TrimAL_BioTrap.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.dgc.unique_list.shared",
+                    stringsAsFactors = F, header = T)
+sample = shared$Group
+shared = shared[ , 4:ncol(shared)]
+
+
+
+tshared = as.data.frame(t(shared))
+
+colnames(tshared) = sample
+
+View(tshared)#this incudes OTU counts but does not include taxonomic/phylogeny groupings
+
+shared.summary = cbind(rowSums(tshared[,1:12]), rowSums(tshared[,13:ncol(tshared)]))
+
+View(shared.summary)#this shows OTU counts for Axial and Loihi, no taxonomy
+
+colnames(shared.summary)=c("Axial","Loihi")
+
+#minOTUs=10
+
+#shared.summary2 = shared.summary[shared.summary[,"Loihi"] > minOTUs & shared.summary[,"Axial"] > minOTUs,]
+
+tshared$OTU=colnames(shared)
+
+View(tshared)
+
+BioTrap_OTUabs=merge(BioTrap_OTUTax,tshared,by="OTU",all=T)
+
+View(BioTrap_OTUabs)#this includes all OTUs with taxonomic data but no diff between Axial and Loihi. Also includes the size of each OTU (which I believe is the sum of all counts)
+
+ 
+
+#splitting up Axial & Loihi
+
+AxialTrapsOTUabs=BioTrap_OTUabs
+
+AxialTrapsOTUabs[,c(16:34)]=NULL
+
+View(AxialTrapsOTUabs)
+
+LoihiTrapsOTUabs=BioTrap_OTUabs
+
+LoihiTrapsOTUabs[,c(4:15)]=NULL
+
+View(LoihiTrapsOTUabs)
+
+Axial_biotraps_data = cbind(AxialTrapsOTUabs)
+write.csv(Axial_biotraps_data, 'Axial Biotrap OTU data.csv')
+ 
+
+library(splitstackshape)
+
+LoihiTaxSplit=cSplit(LoihiTrapsOTUabs, "Taxonomy", ";")
+
+names(LoihiTaxSplit)[22]="Kingdom"
+
+names(LoihiTaxSplit)[23]="Phylum"
+
+names(LoihiTaxSplit)[24]="Class"
+
+View(AxialTrapsOTUabs)
+
+AxialTaxSplit=cSplit(AxialTrapsOTUabs, "Taxonomy",";")
+
+names(AxialTaxSplit)[15]="Kingdom"
+
+names(AxialTaxSplit)[16]="Phylum"
+
+names(AxialTaxSplit)[17]="Class"
+
+names(AxialTaxSplit)[18]="order"
+
+
+
+LoihiTaxSplit
+Axial_biotraps_data = cbind(AxialTrapsOTUabs)
+write.csv(Axial_biotraps_data, 'Axial Biotrap OTU data.csv')
+
+Loihi_biotraps_data = cbind (LoihiTrapsOTUabs)
+write.csv(Loihi_biotraps_data, 'Loihi Biotrap OTU data.csv')
+ 
+library(ggplot2)
+ 
+?melt
+#To Plot
+install.packages('reshape')
+library('reshape')
+
+LoihiPhylumMelt=melt(LoihiTaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))#by phylum
+
+
+
+
+
+LoihiPhylumSum=ddply(LoihiPhylumMelt,c("Phylum","variable"),numcolwise(sum))
+
+LoihiClassMelt=melt(LoihiTaxSplit, id.vars = "Class", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))
+
+LoihiClassSum=ddply(LoihiClassMelt,c("Class","variable"),numcolwise(sum))
+```
+```{r}
+ggplot(LoihiPhylumMelt, aes(x = variable, y = value, fill = row)) + 
+  geom_bar(stat = "phylum") +
+  xlab("OTU") +
+  ylab("number") +
+  guides(fill = FALSE) +
+  theme_bw()
+```
+
