@@ -17,7 +17,7 @@ library("phyloseq"); packageVersion("phyloseq")
 ```
 
 ```{r}
-install.packages("dplyr")
+
 library(dplyr)
 nAxial_Biotrap_OTU_data = read.csv("../Data/Organized-Data/Axial-Biotrap-OTU-data.csv")
 
@@ -41,9 +41,7 @@ Axial_character = subset(Characteristics, Characteristics$seamount == 'Axial')
 Loihi_character = subset(Characteristics,Characteristics$seamount == 'Loihi' )
 
 #plot(Axial_Biotrap_OTU_data)
-
-data(dune)
-
+library(vegan)
 Axial_mds = metaMDS(Axial_OTU_counts[rowSums(Axial_OTU_counts) > 0, ])#need to filter out all those 0s...
 plot(Axial_mds)
 
