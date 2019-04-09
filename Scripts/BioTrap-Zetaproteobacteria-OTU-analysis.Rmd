@@ -38,20 +38,22 @@ shared.summary = cbind(rowSums(tshared[,1:12]), rowSums(tshared[,13:ncol(tshared
 
 View(shared.summary)#this shows OTU counts for Axial and Loihi, no taxonomy
 
-colnames(shared.summary)=c("Axial","Loihi")
+colnames(shared.summary)=c("Axial","Loihi")#names the columns
 
 
 tshared$OTU=colnames(shared)
 
 View(tshared)
-df2 <- data.frame(t(tshared[-1]))
-colnames(df2) <- tshared[, 1]
-df2
 
-BioTrap_OTUabs=merge(BioTrap_OTUTax,tshared,by="OTU",all=T)
+##df2 <- data.frame(t(tshared[-1]))
+##colnames(df2) <- tshared[, 1]
+#df2
 
-View(BioTrap_OTUabs)#this includes all OTUs with taxonomic data but no diff between Axial and Loihi. Also includes the size of each OTU (which I believe is the sum of all counts)
+BioTrap_OTUabs=merge(BioTrap_OTUTax,tshared,by="OTU",all=T)#combines the t shared and Biotrap OTU taxonomy data
 
+View(BioTrap_OTUabs)#this includes all OTUs with taxonomic data but no diff between Axial and Loihi. Also includes the size of each OTU (which is the sum of all counts for that OTU)
+biotraps_data = cbind(BioTrap_OTUabs)
+write.csv(biotraps_data, 'Biotrap OTU data.csv')#this makes a new file
  
 
 #splitting up Axial & Loihi
@@ -62,67 +64,74 @@ AxialTrapsOTUabs[,c(16:34)]=NULL
 
 View(AxialTrapsOTUabs)
 
+Axial_biotraps_data = cbind(AxialTrapsOTUabs)
+write.csv(Axial_biotraps_data, 'Axial Biotrap OTU data.csv')
+ 
+#by taxonomic rank
+library(splitstackshape)
+AxialTaxSplit=cSplit(AxialTrapsOTUabs, "Taxonomy", ";")
+
+names(AxialTaxSplit)[22]="Kingdom"
+
+names(AxialTaxSplit)[23]="Phylum"
+
+names(AxialTaxSplit)[24]="Class"
+
+names(AxialTaxSplit)[25]="order"
+
+View(AxialTaxSplit)
+
+#now Loihi
 LoihiTrapsOTUabs=BioTrap_OTUabs
 
 LoihiTrapsOTUabs[,c(4:15)]=NULL
 
 View(LoihiTrapsOTUabs)
 
-Axial_biotraps_data = cbind(AxialTrapsOTUabs)
-write.csv(Axial_biotraps_data, 'Axial Biotrap OTU data.csv')
- 
+LoihiTaxSplit=cSplit(AxialTrapsOTUabs, "Taxonomy", ";")
 
-library(splitstackshape)
+names(LoihiTaxSplit)[34]="Kingdom"
 
-LoihiTaxSplit=cSplit(LoihiTrapsOTUabs, "Taxonomy", ";")
+names(LoihiTaxSplit)[35]="Phylum"
 
-names(LoihiTaxSplit)[22]="Kingdom"
+names(LoihiTaxSplit)[36]="Class"
 
-names(LoihiTaxSplit)[23]="Phylum"
-
-names(LoihiTaxSplit)[24]="Class"
-
-View(AxialTrapsOTUabs)
-
-AxialTaxSplit=cSplit(AxialTrapsOTUabs, "Taxonomy",";")
-
-names(AxialTaxSplit)[15]="Kingdom"
-
-names(AxialTaxSplit)[16]="Phylum"
-
-names(AxialTaxSplit)[17]="Class"
-
-names(AxialTaxSplit)[18]="order"
-
-
-
-LoihiTaxSplit
-Axial_biotraps_data = cbind(AxialTrapsOTUabs)
-write.csv(Axial_biotraps_data, 'Axial Biotrap OTU data.csv')
+names(LoihiTaxSplit)[37]="order"
 
 Loihi_biotraps_data = cbind (LoihiTrapsOTUabs)
 write.csv(Loihi_biotraps_data, 'Loihi Biotrap OTU data.csv')
- 
+
+
+
 library(ggplot2)
- 
-?melt
 #To Plot
-install.packages('reshape')
 library('reshape')
+library('plyr')
 
 LoihiPhylumMelt=melt(LoihiTaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))#by phylum
-
-
-
-
-
+LoihiPhylumMelt
+#this sums up total OTUs found by each sample in each phylum; disregards which OTU it is.
 LoihiPhylumSum=ddply(LoihiPhylumMelt,c("Phylum","variable"),numcolwise(sum))
-
+LoihiPhylumSum
+#Now let's group this by class
 LoihiClassMelt=melt(LoihiTaxSplit, id.vars = "Class", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))
 
 LoihiClassSum=ddply(LoihiClassMelt,c("Class","variable"),numcolwise(sum))
+
+#This one will be by genus
+LoihiGenusMelt=melt(LoihiTaxSplit, id.vars = "Genus", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))
+
+LoihiGenusSum=ddply(LoihiGenusMelt,c("Genus","variable"),numcolwise(sum))
 ```
 ```{r}
+#Let's Plot it
+LoihiPhylumMelt=melt(LoihiTaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))#by phylum
+LoihiPhylumMelt$Phylum
+#this sums up total OTUs found by each sample in each phylum; disregards which OTU it is.
+LoihiPhylumSum=ddply(LoihiPhylumMelt,c("Phylum","variable"),numcolwise(sum))
+
+
+
 ggplot(LoihiPhylumMelt, aes(x = variable, y = value, fill = row)) + 
   geom_bar(stat = "phylum") +
   xlab("OTU") +

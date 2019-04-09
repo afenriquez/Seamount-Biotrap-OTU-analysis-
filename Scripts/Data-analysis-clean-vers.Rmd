@@ -12,7 +12,30 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 
 library(dplyr)
-nAxial_Biotrap_OTU_data = read.csv("../Data/Organized-Data/Axial-Biotrap-OTU-data.csv")
+Biotrap_full_data = read.csv("../Data/Organized-Data/Biotrap-OTU-data.csv")
+Full_biotrap_dataframe = data.frame(Biotrap_full_data[c(4:35)])
+library(splitstackshape)
+TaxSplit=cSplit(Full_biotrap_dataframe, "Taxonomy", ";")
+
+
+names(TaxSplit)[32]="Kingdom"
+
+names(TaxSplit)[33]="Phylum"
+
+names(TaxSplit)[34]="Class"
+
+names(TaxSplit)[35]="Order"
+
+names(TaxSplit)[36]="Family"
+
+names(TaxSplit)[37]="Genus"
+
+
+
+PhylumMelt=melt(TaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A","AxBT01" , "AxBT03", "AxBT05", "AxBT08", "AxBT10", "AxBT18", "AxBT36", "AxBT38", "AxBT43", "AxBT44", "AxBT47", "AxBT66")) 
+PhylumMelt
+
+Axial_Biotrap_OTU_data = read.csv("../Data/Organized-Data/Axial-Biotrap-OTU-data.csv")
 
 Axial_dataframe = data.frame(Axial_Biotrap_OTU_data)
 Axial_dataframe2 <- select(Axial_dataframe, -1)
@@ -49,27 +72,22 @@ otus = Axial_OTU_counts[,good_samples]
 Splitting Taxonomy
 ```{r}
 library(splitstackshape)
-AxialTaxSplit=cSplit(Axial_Biotrap_OTU_data, "Taxonomy", ";")
+TaxSplit=cSplit(BioTrap_OTUabs, "Taxonomy", ";")
 
-names(AxialTaxSplit)[16]="Kingdom"
+#LoihiTaxSplit=cSplit(LoihiTrapsOTUabs, "Taxonomy", ";")
 
-names(AxialTaxSplit)[17]="Phylum"
+names(TaxSplit)[34]="Kingdom"
 
-names(AxialTaxSplit)[18]="Class"
+names(TaxSplit)[35]="Phylum"
 
-names(AxialTaxSplit)[19]="order"
+names(TaxSplit)[36]="Class"
 
-View(AxialTaxSplit)
+names(TaxSplit)[37]="Order"
 
-AxialTaxSplit=cSplit(AxialTrapsOTUabs, "Taxonomy",";")
+names(TaxSplit)[38]="Family"
 
-names(AxialTaxSplit)[15]="Kingdom"
+names(TaxSplit)[39]="Genus"
 
-names(AxialTaxSplit)[16]="Phylum"
-
-names(AxialTaxSplit)[17]="Class"
-
-names(AxialTaxSplit)[18]="order"
 
 ```
 
