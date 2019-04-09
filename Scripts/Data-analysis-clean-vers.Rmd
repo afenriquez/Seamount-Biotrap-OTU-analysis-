@@ -10,11 +10,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-
+##load packages needed to split up the data
 library(dplyr)
+library(splitstackshape)
+library(reshape)
 Biotrap_full_data = read.csv("../Data/Organized-Data/Biotrap-OTU-data.csv")
 Full_biotrap_dataframe = data.frame(Biotrap_full_data[c(4:35)])
-library(splitstackshape)
+##This has far too many observations to do an NMDS. We can reduce the number of
+##observations by making a data frame based on a taxonomic rank Split up the
+##dataframe by taxonomy by adding taxonomic ranks as columns
 TaxSplit=cSplit(Full_biotrap_dataframe, "Taxonomy", ";")
 
 
@@ -31,63 +35,23 @@ names(TaxSplit)[36]="Family"
 names(TaxSplit)[37]="Genus"
 
 
-
-PhylumMelt=melt(TaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A","AxBT01" , "AxBT03", "AxBT05", "AxBT08", "AxBT10", "AxBT18", "AxBT36", "AxBT38", "AxBT43", "AxBT44", "AxBT47", "AxBT66")) 
-PhylumMelt
-
-Axial_Biotrap_OTU_data = read.csv("../Data/Organized-Data/Axial-Biotrap-OTU-data.csv")
-
-Axial_dataframe = data.frame(Axial_Biotrap_OTU_data)
-Axial_dataframe2 <- select(Axial_dataframe, -1)
-
-Axial_OTU_counts = Axial_dataframe [c(5:16)]
-Axial_OTU_counts
-
-Loihi_Biotrap_OTU_data = read.csv("../Data/Organized-Data/Loihi-Biotrap-OTU-data.csv")
-
-Loihi_OTU_counts = Axial_dataframe [c(5:16)]
-Loihi_OTU_counts
-
-Characteristics = read.csv("../Data/Organized-Data/BioTrapCharacteristics.csv")
-Characteristics
+##arrange by class since it is more descriptive than kingdom and might give
+##insight into how the data is arranged
+ClassesMelt=melt(TaxSplit, id.vars = "Class", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A","AxBT01" , "AxBT03", "AxBT05", "AxBT08", "AxBT10", "AxBT18", "AxBT36", "AxBT38", "AxBT43", "AxBT44", "AxBT47", "AxBT66")) 
+##make it a data frame
+ClassesMelt_df = data.frame(ClassesMelt)
+##now rearrange to wide format using "reshape" function
+ClassMelt_wide_df = reshape(ClassesMelt_df, idvar = "Class", timevar = "variable", direction = "wide")
+##remove "class" variable to create a data frame for nmds
+library(dplyr)
+ClassMelt_OTU_df = select(ClassMelt_wide_df, -Class)
+##Now we can perform an NMDS analysis
 library(vegan)
-library(nlme)
+OTU_count_nmds = metaMDS(ClassMelt_OTU_df)
+##plot NMDS to visualize variation
+NMDS_1 =plot(OTU_count_nmds)
+nmds_pdf = pdf(NMDS_Classplot)
 
-Axial_character = subset(Characteristics, Characteristics$seamount == 'Axial')
-Loihi_character = subset(Characteristics,Characteristics$seamount == 'Loihi' )
-
-#plot(Axial_Biotrap_OTU_data)
-library(vegan)
-Axial_mds = metaMDS(Axial_OTU_counts[rowSums(Axial_OTU_counts) > 0, ])#need to filter out all those 0s...
-plot(Axial_mds)
-
-sapply(Axial_OTU_counts,function(x){})
-
-good_samples <- rownames(Axial_OTU_counts[(rowSums(decostand(Axial_OTU_counts,"pa")) >= 1)]) 
-otus = Axial_OTU_counts[,good_samples]
-
-#genefilter_sample(Axial_OTU_counts, filterfun_sample(function(x) x > 5), A=0.5*nsamples(Axial_OTU_counts))
 ```
 
-Splitting Taxonomy
-```{r}
-library(splitstackshape)
-TaxSplit=cSplit(BioTrap_OTUabs, "Taxonomy", ";")
-
-#LoihiTaxSplit=cSplit(LoihiTrapsOTUabs, "Taxonomy", ";")
-
-names(TaxSplit)[34]="Kingdom"
-
-names(TaxSplit)[35]="Phylum"
-
-names(TaxSplit)[36]="Class"
-
-names(TaxSplit)[37]="Order"
-
-names(TaxSplit)[38]="Family"
-
-names(TaxSplit)[39]="Genus"
-
-
-```
 

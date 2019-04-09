@@ -31,8 +31,8 @@ shared = shared[ , 4:ncol(shared)]
 tshared = as.data.frame(t(shared))
 
 colnames(tshared) = sample
-
-View(tshared)#this incudes OTU counts but does not include taxonomic/phylogeny groupings
+#t shared incudes OTU counts but does not include taxonomic/phylogeny groupings
+View(tshared)
 
 shared.summary = cbind(rowSums(tshared[,1:12]), rowSums(tshared[,13:ncol(tshared)]))
 
@@ -51,7 +51,11 @@ View(tshared)
 
 BioTrap_OTUabs=merge(BioTrap_OTUTax,tshared,by="OTU",all=T)#combines the t shared and Biotrap OTU taxonomy data
 
-View(BioTrap_OTUabs)#this includes all OTUs with taxonomic data but no diff between Axial and Loihi. Also includes the size of each OTU (which is the sum of all counts for that OTU)
+#BioTrap_OTUabs includes all OTUs with taxonomic data but no diff between Axial and Loihi.
+#Also includes the size of each OTU (which is the sum of all counts for that
+#OTU)
+View(BioTrap_OTUabs)
+
 biotraps_data = cbind(BioTrap_OTUabs)
 write.csv(biotraps_data, 'Biotrap OTU data.csv')#this makes a new file
  
@@ -102,15 +106,14 @@ Loihi_biotraps_data = cbind (LoihiTrapsOTUabs)
 write.csv(Loihi_biotraps_data, 'Loihi Biotrap OTU data.csv')
 
 
-
+#Now we can dowload packages to  help plot
 library(ggplot2)
-#To Plot
 library('reshape')
 library('plyr')
-
-LoihiPhylumMelt=melt(LoihiTaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))#by phylum
+#Organize by phylum
+LoihiPhylumMelt=melt(LoihiTaxSplit, id.vars = "Phylum", measure.vars = c("LBT03","LBT04","LBT05","LBT07","LBT08","LBT09","LBT10","LBT89", "LBT90", "LBT91" ,"LBT92" , "LBT93","LBT94", "LBT96","LBT97","LBT98","LBTL10","LBTL7","LBTL9A"))
 LoihiPhylumMelt
-#this sums up total OTUs found by each sample in each phylum; disregards which OTU it is.
+#ddply will help sum up total OTUs found by each sample in each phylum; disregards which OTU it is.
 LoihiPhylumSum=ddply(LoihiPhylumMelt,c("Phylum","variable"),numcolwise(sum))
 LoihiPhylumSum
 #Now let's group this by class
