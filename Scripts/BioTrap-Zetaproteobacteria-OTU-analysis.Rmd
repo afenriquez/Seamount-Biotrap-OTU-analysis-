@@ -44,7 +44,7 @@ colnames(shared.summary)=c("Axial","Loihi")#names the columns
 tshared$OTU=colnames(shared)
 
 View(tshared)
-
+tshared$OTU
 ##df2 <- data.frame(t(tshared[-1]))
 ##colnames(df2) <- tshared[, 1]
 #df2

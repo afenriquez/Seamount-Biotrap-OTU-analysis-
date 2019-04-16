@@ -42,6 +42,7 @@ ClassesMelt=melt(TaxSplit, id.vars = "Class", measure.vars = c("LBT03","LBT04","
 ClassesMelt_df = data.frame(ClassesMelt)
 ##now rearrange to wide format using "reshape" function
 ClassMelt_wide_df = reshape(ClassesMelt_df, idvar = "Class", timevar = "variable", direction = "wide")
+ClassesMelt_df
 ##remove "class" variable to create a data frame for nmds
 library(dplyr)
 ClassMelt_OTU_df = select(ClassMelt_wide_df, -Class)
@@ -49,9 +50,25 @@ ClassMelt_OTU_df = select(ClassMelt_wide_df, -Class)
 library(vegan)
 OTU_count_nmds = metaMDS(ClassMelt_OTU_df)
 ##plot NMDS to visualize variation
+plot(OTU_count_nmds)
+pdf('../Figures/nmds.pdf')
+dev.off()
 NMDS_1 =plot(OTU_count_nmds)
 nmds_pdf = pdf(NMDS_Classplot)
 
+OTU_sites = ClassesMelt_df$variable
+```
+
+Adding Environmental Data
+```{r}
+Biotrap_Characteristics_full = read.csv("../Data/Organized-data/BioTrapCharacteristics.csv")
+
+#remove unnecessary variables that have too many NA values
+library(dplyr)
+Biotrap_env_Characteristics = select(Biotrap_Characteristics_full, -Temperature,-H2S,-pH,-Fe.II.)
+
+Biotrap_env_Characteristics
+                                                                        
 ```
 
 

@@ -23,7 +23,11 @@ To view associated figures, view the "Figures" folder.
 **Data Analysis**
 As stated previously, the raw data files contain OTU size, Taxonomy, and counts for each OTU. With this set, I created a new .csv file to include all of the information and make it more readable. This file contains OTU data for both sites (Axial and Lo'ihi).
 
-Next, I used that .csv file to rearrange the data into something that could be analyzed by NMDS. I rearranged the data so that the samples could be arranged by specific taxa, in this case, by phylum.
+Next, I used that .csv file to rearrange the data into something that could be analyzed by NMDS. I rearranged the data so that the samples could be arranged by specific taxa, in this case, by class.Class is a bit more descriptive than kingdom and phylum, which is why I chose it.
+
+To get the data frame to work with NMDS, some arrangements were made to the data organization. Finally, I did my first NMDS and came up with 
+
+
 
 **Aknowledgements**
 I would like to thank my adviser, Heather FUllerton, for providing me with this data.
