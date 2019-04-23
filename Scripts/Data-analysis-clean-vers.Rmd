@@ -42,21 +42,83 @@ ClassesMelt=melt(TaxSplit, id.vars = "Class", measure.vars = c("LBT03","LBT04","
 ClassesMelt_df = data.frame(ClassesMelt)
 ##now rearrange to wide format using "reshape" function
 ClassMelt_wide_df = reshape(ClassesMelt_df, idvar = "Class", timevar = "variable", direction = "wide")
-ClassesMelt_df
+#setnames (reshape(ClassesMelt_df, idvar = "Class", timevar = "variable", direction = "wide"), + c("class",""))
 ##remove "class" variable to create a data frame for nmds
 library(dplyr)
-ClassMelt_OTU_df = select(ClassMelt_wide_df, -Class)
+row.names(ClassMelt_wide_df)=ClassMelt_wide_df$Class
+ClassMelt_wide_df$Class=NULL
+ClassMelt_wide_df
 ##Now we can perform an NMDS analysis
-library(vegan)
-OTU_count_nmds = metaMDS(ClassMelt_OTU_df)
-##plot NMDS to visualize variation
-plot(OTU_count_nmds)
-pdf('../Figures/nmds.pdf')
-dev.off()
-NMDS_1 =plot(OTU_count_nmds)
-nmds_pdf = pdf(NMDS_Classplot)
 
-OTU_sites = ClassesMelt_df$variable
+##plot NMDS to visualize variation
+Class_final_df = t(ClassMelt_wide_df) 
+View(Class_final_df)
+#as.data.frame(Class_final_df)
+
+library(vegan)
+classNMDS=metaMDS(Class_final_df)
+
+plot(classNMDS)
+pdf('../Figures/nmds_fig_1.pdf')
+dev.off()
+
+
+plot(classNMDS)
+orditorp(classNMDS,display = "site", cex=1.05,air=0.05)
+pdf('../Figures/NMDS_by_site.pdf')
+dev.off()
+
+plot(classNMDS)
+orditorp(classNMDS,display = "species", labels = 'class', cex=0.5,air=0.05)
+pdf('../Figures/NMDS_by_class.pdf')
+dev.off()
+
+plot(classNMDS)
+orditorp(classNMDS,display="species", col="red",air=0.01)
+orditorp(classNMDS,display="sites",cex=1.25,air=0.01)
+pdf('../Figures/NMDS_class_and_site.pdf')
+dev.off()
+
+otus_dist = as.matrix((vegdist(Class_final_df, "bray")))
+NMDS = metaMDS(otus_dist)
+#build a data frame with nmds metadata
+MDS1 = NMDS$points[,1]
+ MDS2 = NMDS$points[,2]
+ NMDS_2 = data.frame(MDS1 = MDS1, MDS2 = MDS2, Sample_site = BioTrapCharacteristics$group, Location = BioTrapCharacteristics$seamount)
+
+Duration = BioTrapCharacteristics$Duration
+Year = BioTrapCharacteristics$year
+
+library(ggplot2)
+ggplot(NMDS_2, aes(x=MDS1, y=MDS2, col=Location)) +
+ geom_point(aes(col = as.factor(Duration))) +
+ stat_ellipse() +
+ theme_bw() +
+ labs(title = "NMDS Plot with Duration")
+
+#plot with just the nmds
+ggplot(NMDS, aes(x=MDS1, y=MDS2, col=Location)) +
+ geom_point() +
+ stat_ellipse() +
+ theme_bw() +
+ labs(title = "NMDS Plot")
+#plot with the year
+ggplot(NMDS_2, aes(x=MDS1, y=MDS2, col=Location)) +
+ geom_point(aes(shape = as.factor(Year))) +
+ stat_ellipse() +
+ theme_bw() +
+ labs(title = "NMDS Plot using Year")
+library(vegan)
+data("dune")
+mod = cca(Class_final_df~Year)
+mod2 = cca(Class_final_df~Duration)
+summary(mod)
+plot(mod)
+with(Class_final_df, ordihull(mod,BioTrapCharacteristics$marker,
+                              scaling = "symmetric", label = TRUE))
+
+anosim(otus_dist, grouping = BioTrapCharacteristics$seamount) 
+
 ```
 
 Adding Environmental Data
