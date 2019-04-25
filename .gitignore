@@ -48,3 +48,11 @@ names(TaxSplit)[37]="Order"
 names(TaxSplit)[38]="Family"
 
 names(TaxSplit)[39]="Genus"
+
+Biotrap_Characteristics_full = read.csv("../Data/Organized-data/BioTrapCharacteristics.csv")
+
+#remove unnecessary variables that have too many NA values
+library(dplyr)
+Biotrap_env_Characteristics = select(Biotrap_Characteristics_full, -Temperature,-H2S,-pH,-Fe.II.)
+
+Biotrap_env_Characteristics

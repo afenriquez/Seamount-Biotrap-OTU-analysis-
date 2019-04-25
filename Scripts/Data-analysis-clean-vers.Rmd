@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+Arranging data and NMDS
 ```{r}
 ##load packages needed to split up the data
 library(dplyr)
@@ -42,95 +42,121 @@ ClassesMelt=melt(TaxSplit, id.vars = "Class", measure.vars = c("LBT03","LBT04","
 ClassesMelt_df = data.frame(ClassesMelt)
 ##now rearrange to wide format using "reshape" function
 ClassMelt_wide_df = reshape(ClassesMelt_df, idvar = "Class", timevar = "variable", direction = "wide")
-#setnames (reshape(ClassesMelt_df, idvar = "Class", timevar = "variable", direction = "wide"), + c("class",""))
+names(ClassMelt_wide_df) = gsub("value.","",names(ClassMelt_wide_df))
+
 ##remove "class" variable to create a data frame for nmds
 library(dplyr)
 row.names(ClassMelt_wide_df)=ClassMelt_wide_df$Class
 ClassMelt_wide_df$Class=NULL
 ClassMelt_wide_df
-##Now we can perform an NMDS analysis
 
-##plot NMDS to visualize variation
+##transcribe the melted data frame
 Class_final_df = t(ClassMelt_wide_df) 
 View(Class_final_df)
-#as.data.frame(Class_final_df)
-
+##now we can perform an NMDS
 library(vegan)
 classNMDS=metaMDS(Class_final_df)
-
-plot(classNMDS)
-pdf('../Figures/nmds_fig_1.pdf')
+##now we can make a plot of that NMDS
+plot(classNMDS, main = "NMDS of Bacteria from both Lo'ihi and Axial\n Vents")
+pdf('../Figures/nmds_1.pdf')
 dev.off()
 
-
-plot(classNMDS)
+##let's make a plot labeled by site
+plot(classNMDS, main = "NMDS Displaying Bacteria Site Names for Axial\n and Lo'ihi")
 orditorp(classNMDS,display = "site", cex=1.05,air=0.05)
+#you can make a pdf
 pdf('../Figures/NMDS_by_site.pdf')
 dev.off()
-
-plot(classNMDS)
-orditorp(classNMDS,display = "species", labels = 'class', cex=0.5,air=0.05)
-pdf('../Figures/NMDS_by_class.pdf')
-dev.off()
-
-plot(classNMDS)
-orditorp(classNMDS,display="species", col="red",air=0.01)
-orditorp(classNMDS,display="sites",cex=1.25,air=0.01)
+##here is a plot with both class and site
+plot(classNMDS, main = "NMDS Plot of Bacteria Using Class\n and Sample Site")
+orditorp(classNMDS,display="species", col="darkblue",air=0.6)
+orditorp(classNMDS,display="sites",cex=1.25,air=0.9)
 pdf('../Figures/NMDS_class_and_site.pdf')
 dev.off()
-
+#This plot is a little conglomerated, so instead we can build a distance matrix
+#and use ggplot to get a better look at the sample.
 otus_dist = as.matrix((vegdist(Class_final_df, "bray")))
-NMDS = metaMDS(otus_dist)
-#build a data frame with nmds metadata
-MDS1 = NMDS$points[,1]
- MDS2 = NMDS$points[,2]
- NMDS_2 = data.frame(MDS1 = MDS1, MDS2 = MDS2, Sample_site = BioTrapCharacteristics$group, Location = BioTrapCharacteristics$seamount)
+#perform and NMDS on the distance matrix
+NMDS_with_dist = metaMDS(otus_dist)
+#now make a data frame with the NMDS points and characteristics of the environment
+MDS1 = NMDS_with_dist$points[,1]
+ MDS2 = NMDS_with_dist$points[,2]
+ NMDS_with_dist_df = data.frame(MDS1 = MDS1, MDS2 = MDS2, Sample_site = BioTrap_Characteristics$group, Location = BioTrap_Characteristics$seamount)#"group" is the sample site name in either Lo'ihi or Axial. 
+#view to see what it looks like
+ head(NMDS_with_dist_df)
+#simplify the names by assigning "Duration" and "Year"
+Duration = as.factor(BioTrap_Characteristics$Duration)
+Year = as.factor(BioTrap_Characteristics$year)
 
-Duration = BioTrapCharacteristics$Duration
-Year = BioTrapCharacteristics$year
 
-library(ggplot2)
-ggplot(NMDS_2, aes(x=MDS1, y=MDS2, col=Location)) +
- geom_point(aes(col = as.factor(Duration))) +
- stat_ellipse() +
- theme_bw() +
- labs(title = "NMDS Plot with Duration")
-
+#now we can plot this using ggplot
 #plot with just the nmds
-ggplot(NMDS, aes(x=MDS1, y=MDS2, col=Location)) +
+#This seems more visually appealing
+ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, col=Location)) +
  geom_point() +
  stat_ellipse() +
  theme_bw() +
- labs(title = "NMDS Plot")
-#plot with the year
-ggplot(NMDS_2, aes(x=MDS1, y=MDS2, col=Location)) +
- geom_point(aes(shape = as.factor(Year))) +
+ labs(title = "NMDS Plot For Loihi and Axial Communities")
+#Now Plot the nmds using duration this will display the NMDS by the amount of
+#time the biotraps were spent in the environment (Duration). The points indicate
+#different sample sites This plot uses the same data frame; it does not separate
+#Lo'ihi and Axial into two separate data sets
+library(ggplot2)
+Graph_by_Duration <- ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, group=Location, col=Location)) +
+ geom_point(aes(col = (Duration))) +
  stat_ellipse() +
  theme_bw() +
- labs(title = "NMDS Plot using Year")
-library(vegan)
-data("dune")
-mod = cca(Class_final_df~Year)
-mod2 = cca(Class_final_df~Duration)
-summary(mod)
-plot(mod)
-with(Class_final_df, ordihull(mod,BioTrapCharacteristics$marker,
-                              scaling = "symmetric", label = TRUE))
+ labs(title = "Grouping of Bacterial\n Communities Plotted with\n Duration", col= "Duration and Seamount")
+#you can change the color for it to look better
+Graph_by_Duration + scale_color_hue(l=50, c=72)
 
+#plot with the year
+ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, col=Location)) +
+ geom_point(aes(shape = (Year))) +
+ stat_ellipse() +
+ theme_bw() +
+ labs(title = "Grouping of Bacterial Communities Plotted with Year ")
+#It looks like these communities differ by Location, but Year and Duration do
+#not influence this.
+#Now we can check to see if there really is a difference between the Axial and
+#Loihi Seamounts
 anosim(otus_dist, grouping = BioTrapCharacteristics$seamount) 
 
-```
 
-Adding Environmental Data
+```
+CCA analysis
 ```{r}
-Biotrap_Characteristics_full = read.csv("../Data/Organized-data/BioTrapCharacteristics.csv")
-
-#remove unnecessary variables that have too many NA values
-library(dplyr)
-Biotrap_env_Characteristics = select(Biotrap_Characteristics_full, -Temperature,-H2S,-pH,-Fe.II.)
-
-Biotrap_env_Characteristics
-                                                                        
+#finally, we can perform a CCA to see if there is no statistical significance in
+#these environmental variables
+library(vegan)
+bact_cca_Year = cca(Class_final_df~Year)
+#now call the cca to view
+#It looks like only 33% of variance is explained
+bact_cca_Year
+summary(bact_cca)
+RsquareAdj(bact_cca, 100)
+#now let's do this with year
+bact_cca_Duration= cca(Class_final_df~BioTrap_Characteristics$Duration)
+bact_cca_Duration
+#It looks like only 6% of the variation can be explained by this variable let's
+#look at a model that includes the different seamounts
+bact_cca_seamount = cca(Class_final_df~Year+BioTrap_Characteristics$Duration+BioTrap_Characteristics$seamount)
+bact_cca_seamount
+#This model does a better job, and explains about 49 percent of variation let's
+#get an adjusted R squared because we have more variables
+bact_cca_r2 = RsquareAdj(bact_cca_seamount, nperm = 2000)
+bact_cca_r2[2] #the rsquared adjusted value is lower.
+anova(bact_cca_seamount)
+#performing anova tells us that this model does indeed do a better job of
+#explaining variance than random
+#let's have a look at each variable's significance
+anova(bact_cca_seamount, by='margin')
+#with this, it looks like Year and Seamount actually have a significant effect
+#on the model. It is clear that Seamount is the most influential variable!
+#plot this
+plot(bact_cca_seamount, display ="sites")
 ```
+
+
 
 
