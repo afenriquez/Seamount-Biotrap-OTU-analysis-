@@ -56,3 +56,7 @@ library(dplyr)
 Biotrap_env_Characteristics = select(Biotrap_Characteristics_full, -Temperature,-H2S,-pH,-Fe.II.)
 
 Biotrap_env_Characteristics
+#we can also get a little better view of which classes are where by using "ordilabel" to prioritize
+plot(classNMDS, type = "n")
+ordilabel(classNMDS, dis="sp", font=2, priority=rowSums(ClassMelt_wide_df))
+orditorp(classNMDS,display="sites",cex=1.25,air=0.9)

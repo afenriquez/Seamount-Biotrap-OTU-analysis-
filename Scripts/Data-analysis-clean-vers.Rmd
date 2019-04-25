@@ -123,6 +123,10 @@ ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, col=Location)) +
 anosim(otus_dist, grouping = BioTrap_Characteristics$seamount) 
 #according to this, the Lo'ihi and Axial site are statistically different
 
+plot(classNMDS, main = "NMDS Plot of Bacteria Using Class\n and Sample Site")
+orditorp(classNMDS,display="species", col="darkblue",air=0.05)
+
+
 ```
 CCA analysis
 ```{r}
