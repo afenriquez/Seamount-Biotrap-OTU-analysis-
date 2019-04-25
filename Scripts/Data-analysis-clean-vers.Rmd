@@ -92,6 +92,7 @@ Year = as.factor(BioTrap_Characteristics$year)
 #now we can plot this using ggplot
 #plot with just the nmds
 #This seems more visually appealing
+library(ggplot2)
 ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, col=Location)) +
  geom_point() +
  stat_ellipse() +
@@ -101,7 +102,6 @@ ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, col=Location)) +
 #time the biotraps were spent in the environment (Duration). The points indicate
 #different sample sites This plot uses the same data frame; it does not separate
 #Lo'ihi and Axial into two separate data sets
-library(ggplot2)
 Graph_by_Duration <- ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, group=Location, col=Location)) +
  geom_point(aes(col = (Duration))) +
  stat_ellipse() +
@@ -115,13 +115,13 @@ ggplot(NMDS_with_dist_df, aes(x=MDS1, y=MDS2, col=Location)) +
  geom_point(aes(shape = (Year))) +
  stat_ellipse() +
  theme_bw() +
- labs(title = "Grouping of Bacterial Communities Plotted with Year ")
+ labs(title = "Grouping of Bacterial Communities Plotted\n with Year ")
 #It looks like these communities differ by Location, but Year and Duration do
 #not influence this.
 #Now we can check to see if there really is a difference between the Axial and
 #Loihi Seamounts
-anosim(otus_dist, grouping = BioTrapCharacteristics$seamount) 
-
+anosim(otus_dist, grouping = BioTrap_Characteristics$seamount) 
+#according to this, the Lo'ihi and Axial site are statistically different
 
 ```
 CCA analysis
@@ -133,28 +133,30 @@ bact_cca_Year = cca(Class_final_df~Year)
 #now call the cca to view
 #It looks like only 33% of variance is explained
 bact_cca_Year
-summary(bact_cca)
+summary(bact_cca_Year)
 RsquareAdj(bact_cca, 100)
 #now let's do this with year
 bact_cca_Duration= cca(Class_final_df~BioTrap_Characteristics$Duration)
 bact_cca_Duration
 #It looks like only 6% of the variation can be explained by this variable let's
 #look at a model that includes the different seamounts
-bact_cca_seamount = cca(Class_final_df~Year+BioTrap_Characteristics$Duration+BioTrap_Characteristics$seamount)
-bact_cca_seamount
+bact_cca_seamount = cca(Class_final_df~BioTrap_Characteristics$seamount)
+#This only explains 18% variance. Let's look at them all together
+bact_cca_all = cca(Class_final_df~Year+BioTrap_Characteristics$Duration+BioTrap_Characteristics$seamount)
+bact_cca_all
 #This model does a better job, and explains about 49 percent of variation let's
 #get an adjusted R squared because we have more variables
-bact_cca_r2 = RsquareAdj(bact_cca_seamount, nperm = 2000)
+bact_cca_r2 = RsquareAdj(bact_cca_all, nperm = 2000)
 bact_cca_r2[2] #the rsquared adjusted value is lower.
-anova(bact_cca_seamount)
+anova(bact_cca_all)
 #performing anova tells us that this model does indeed do a better job of
 #explaining variance than random
 #let's have a look at each variable's significance
-anova(bact_cca_seamount, by='margin')
+anova(bact_cca_all, by='margin')
 #with this, it looks like Year and Seamount actually have a significant effect
-#on the model. It is clear that Seamount is the most influential variable!
+#on the model. It is clear that Seamount is the most influential variable
 #plot this
-plot(bact_cca_seamount, display ="sites")
+plot(bact_cca_all)
 ```
 
 
