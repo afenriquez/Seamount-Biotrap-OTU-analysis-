@@ -81,6 +81,7 @@ NMDS_with_dist = metaMDS(otus_dist)
 #now make a data frame with the NMDS points and characteristics of the environment
 MDS1 = NMDS_with_dist$points[,1]
  MDS2 = NMDS_with_dist$points[,2]
+ ### BioTrap_Characteristic file is mentioned in a previous sript
  NMDS_with_dist_df = data.frame(MDS1 = MDS1, MDS2 = MDS2, Sample_site = BioTrap_Characteristics$group, Location = BioTrap_Characteristics$seamount)#"group" is the sample site name in either Lo'ihi or Axial. 
 #view to see what it looks like
  head(NMDS_with_dist_df)
